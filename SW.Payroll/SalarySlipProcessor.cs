@@ -9,20 +9,16 @@ namespace SW.Payroll
     public class SalarySlipProcessor
     {
         private readonly IZoneService zoneService;
-
         public SalarySlipProcessor(IZoneService zoneService)
         {
             this.zoneService = zoneService;
         }
-         
         public decimal CalculateBasicSalary(Employee employee)
-        { 
-            if(employee == null)
+        {
+            if (employee == null)
                 throw new ArgumentNullException(nameof(employee));
-
             return employee.Wage * employee.WorkingDays;
         }
-      
         public decimal CalculateSpouseAllowance(Employee employee)
         {
             if (employee is null)
@@ -30,7 +26,6 @@ namespace SW.Payroll
 
             return employee.IsMarried ? Constants.SpouseAllowanceAmount : 0m;
         }
-      
         public decimal CalculateDependancyAllowance(Employee employee)
         {
             if (employee is null)
@@ -52,7 +47,6 @@ namespace SW.Payroll
                 return employee.TotalDependancies * Constants.DependancyAllowancePerChildAmount;
             }
         }
-     
         public decimal CalculatePension(Employee employee)
         {
             if (employee is null)
@@ -63,7 +57,6 @@ namespace SW.Payroll
 
             return Constants.PensionRate * CalculateBasicSalary(employee);
         }
-     
         public decimal CalculateTax(Employee employee)
         {
             var basicSalary = CalculateBasicSalary(employee);
@@ -74,7 +67,6 @@ namespace SW.Payroll
             else
                 return basicSalary * Constants.LowSalaryTaxFactor;
         }
-    
         public decimal CalculateDangerPay(Employee employee)
         {
 
@@ -91,7 +83,6 @@ namespace SW.Payroll
 
             return 0m;
         }
-    
         public decimal CalculateHealthInsurance(Employee employee)
         {
             if (employee is null)
@@ -112,21 +103,19 @@ namespace SW.Payroll
                     return 0m;
             }
         }
-      
         public decimal CalculateTransportationAllowece(Employee employee)
         {
             if (employee is null)
                 throw new ArgumentNullException(nameof(employee));
 
             if (employee.WorkPlatform == WorkPlatform.Office)
-                return Constants.TransportationAllowanceAmount;
-
+                 return Constants.TransportationAllowanceAmount;
+                
             if (employee.WorkPlatform == WorkPlatform.Remote)
                 return 0m;
 
             return Constants.TransportationAllowanceAmount / 2;
         }
-
         public decimal calculateNetSalary(Employee employee)
         {
             if (employee is null)
@@ -150,7 +139,6 @@ namespace SW.Payroll
 
             return netSalary;
         }
-
         public string Process(Employee employee)
         {
             if (employee is null)

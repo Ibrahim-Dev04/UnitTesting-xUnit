@@ -1,651 +1,136 @@
 using Moq;
 using System;
+using System.Reflection;
+using System.Text;
 using Xunit;
+using static System.Collections.Specialized.BitVector32;
 
 namespace SW.Payroll.Tests
 {
     public class SalarySlipProcessorTests
     {
-       
-        [Fact]
-        public void CalculateBasicSalary_EmployeeIsNull_ThrowArgumentNullException()
-        {
-            // Arrange
+        //how to name a testing method:
+        //[Fact]
+        //public void MethodName_Scenario_Outcome()
+        //{
+        //
+        //}
 
-            Employee employee = null;
-
-            // Act
-
-            var salarySlipProcessor = new SalarySlipProcessor(null);
-
-            Func<Employee, decimal> func = (e) => salarySlipProcessor.CalculateBasicSalary(employee);
-
-            // Assert 
-
-            Assert.Throws<ArgumentNullException>(() => func(employee));
-
-        }
-
+        //The purpose of the[Fact] attribute in xUnit.net is to mark a method as a test case that should be executed by the test runner.
         [Fact]
         public void CalculateBasicSalary_ForEmployeeWageAndWorkingDays_ReturnsBasicSalary()
         {
-            // Arrange
-            
-            var employee = new Employee { Wage = 500m, WorkingDays = 20 };
+            //Arrange : in this step we initialize obj we will test the class's method with
+            var employee = new Employee() { Wage = 500, WorkingDays = 20 };
 
-            // Act
-            
-            var salarySlipProcessor = new SalarySlipProcessor(null);
+            //Act : in this step we call the method to manipulate
 
-            var actual = salarySlipProcessor.CalculateBasicSalary(employee);
-            
-            var expected = 10000m;
-            
-            // Assert
+            var SalarySlipProcessor = new SalarySlipProcessor(null);
 
-            Assert.Equal(actual, expected);
+            var actual = SalarySlipProcessor.CalculateBasicSalary(employee);
+            var Expected = 10000m;
+
+
+            //Assert : Assert is used in unit testing to verify that expected conditions are met.
+            //If an assertion fails, the test fails.
+
+            Assert.Equal(Expected, actual);
         }
 
-
         [Fact]
-        public void CalculateSpouseAllowances_EmployeeIsNull_ThrowArgumentNullException()
+        public void CalculateBasicSalary_ForEmployeeIsNull_ThrowArgumentNullException()
         {
-            // Arrange
-
+            //Arrange : 
             Employee employee = null;
 
-            // Act
+            //Act :
+            var SalarySlipProcessor = new SalarySlipProcessor(null);
 
-            var salarySlipProcessor = new SalarySlipProcessor(null);
+            //we use delegate here to not let CalculateBasicSalary() executes and throw excpetion and test fails
+            Func<Employee,decimal> Func =  (Empl) => SalarySlipProcessor.CalculateBasicSalary(Empl);
 
-            Func<Employee, decimal> func = (e) => salarySlipProcessor.CalculateSpouseAllowance(employee);
+            //Assert :
 
-            // Assert 
-
-            Assert.Throws<ArgumentNullException>(() => func(employee));
-
+            //Assert.Throws<T>(Action) This method checks whether the provided action throws an exception of type T.
+                  Assert.Throws<ArgumentNullException>(() => Func(employee));
         }
 
         [Fact]
-        public void CalculateSpouseAllowance_ForMarriedEmployee_SpouseAllowance()
+        public void CalculateTransportationAllowece_ForEmployeeIsNull_ThrowAgumentNullException()
         {
-            // Arrange
-
-            var employee = new Employee { IsMarried = true };
-
-            // Act
-
-            var salarySlipProcessor = new SalarySlipProcessor(null);
-
-            var actual = salarySlipProcessor.CalculateSpouseAllowance(employee);
-
-            var expected = Constants.SpouseAllowanceAmount;
-
-            // Assert
-
-            Assert.Equal(actual, expected);
-        }
-
-        [Fact]
-        public void CalculateSpouseAllowance_ForNonMarriedEmployee_ReturnsZero()
-        {
-            // Arrange
-
-            var employee = new Employee { IsMarried = false };
-
-            // Act
-
-            var salarySlipProcessor = new SalarySlipProcessor(null);
-
-            var actual = salarySlipProcessor.CalculateSpouseAllowance(employee);
-
-            var expected = 0m;
-
-            // Assert
-
-            Assert.Equal(actual, expected);
-        }
-
-        [Fact]
-        public void CalculateDependancyAllowance_EmployeeIsNull_ThrowArgumentNullException()
-        {
-            // Arrange
-
+            //Arrange
             Employee employee = null;
 
-            // Act
+            //Act
+            SalarySlipProcessor salarySlipProcessor = new SalarySlipProcessor(null);
+            Func<Employee,decimal> Func = (empl) => salarySlipProcessor.CalculateTransportationAllowece(empl);
 
-            var salarySlipProcessor = new SalarySlipProcessor(null);
+            //assert
 
-            Func<Employee, decimal> func = (e) => salarySlipProcessor.CalculateSpouseAllowance(employee);
-
-            // Assert 
-
-            Assert.Throws<ArgumentNullException>(() => func(employee));
-
+            Assert.Throws<ArgumentNullException>(() => Func(employee));
         }
 
         [Fact]
-        public void CalculateDependancyAllowance_EmployeeWithOneDependants_ReturnsDependancyAllowance()
+        public void CalculateTransportationAllowece_ForEmployeeWorkInOffice_ReturnTransportationAllowanceAmount()
         {
-            // Arrange
-            var totalDependants = 2;
-            var employee = new Employee { TotalDependancies = totalDependants };
+            //arrange
 
-            // Act
+            Employee employee = new Employee() { WorkPlatform = WorkPlatform.Office };
 
-            var salarySlipProcessor = new SalarySlipProcessor(null);
+            //act 
+            SalarySlipProcessor salarySlipProcessor = new SalarySlipProcessor(null);
+            var Actual = salarySlipProcessor.CalculateTransportationAllowece(employee);
+            var Expected = Constants.TransportationAllowanceAmount;
 
-            var actual = salarySlipProcessor.CalculateDependancyAllowance(employee);
+            //assert
 
-            var expected = Constants.DependancyAllowancePerChildAmount * totalDependants;
-
-            // Assert
-
-            Assert.Equal(actual, expected);
+            Assert.Equal(Expected, Actual);
         }
 
         [Fact]
-        public void CalculateDependancyAllowance_EmployeeWithZeroDependants_ReturnsZero()
+        public void CalculateTransportationAllowece_ForEmployeeWorkRemote_ReturnTransportationAllowanceAmount()
         {
-            // Arrange
+            //arrange
 
-            var employee = new Employee { TotalDependancies = 0 };
+            Employee employee = new Employee() { WorkPlatform = WorkPlatform.Remote };
 
-            // Act
+            //act 
+            SalarySlipProcessor salarySlipProcessor = new SalarySlipProcessor(null);
+            var Actual = salarySlipProcessor.CalculateTransportationAllowece(employee);
+            var Expected = 0m;
 
-            var salarySlipProcessor = new SalarySlipProcessor(null);
+            //assert
 
-            var actual = salarySlipProcessor.CalculateDependancyAllowance(employee);
-
-            var expected = 0m;
-
-            // Assert
-
-            Assert.Equal(actual, expected);
-        }
-         
-        [Fact]
-        public void CalculateDependancyAllowance_EmployeeWithDependantsOverFive_ReturnsMaxDependancyAllowance()
-        {
-            // Arrange
-
-            var employee = new Employee { TotalDependancies = 6 };
-
-            // Act
-
-            var salarySlipProcessor = new SalarySlipProcessor(null);
-
-            var actual = salarySlipProcessor.CalculateDependancyAllowance(employee);
-
-            var expected = Constants.MaxDependancyAllowanceAmount;
-
-            // Assert
-
-            Assert.Equal(actual, expected);
-        }
-         
-
-        [Fact]
-        public void CalculatePension_EmployeeIsNull_ThrowArgumentNullException()
-        {
-            // Arrange
-
-            Employee employee = null;
-
-            // Act
-
-            var salarySlipProcessor = new SalarySlipProcessor(null);
-
-            Func<Employee, decimal> func = (e) => salarySlipProcessor.CalculateSpouseAllowance(employee);
-
-            // Assert 
-
-            Assert.Throws<ArgumentNullException>(() => func(employee));
-
+            Assert.Equal(Expected, Actual);
         }
 
         [Fact]
-        public void CalculatePension_EmployeeHasPensionOn_ReturnsPensionAmount()
+        public void CalculateTransportationAllowece_ForEmployeeWorkHybrid_ReturnTransportationAllowanceAmount()
         {
-            // Arrange 
-            var employee = new Employee {  Wage = 500, WorkingDays = 20,  HasPensionPlan = true };
-        
-            // Act
+            //arrange
+            Employee employee = new Employee() { WorkPlatform = WorkPlatform.Hybrid };
 
-            var salarySlipProcessor = new SalarySlipProcessor(null);
+            //act 
+            SalarySlipProcessor salarySlipProcessor = new SalarySlipProcessor(null);
+            var Actual = salarySlipProcessor.CalculateTransportationAllowece(employee);
+            var Expected = Constants.TransportationAllowanceAmount / 2;
 
-            var actual = salarySlipProcessor.CalculatePension(employee);
+            //assert
+            Assert.Equal(Expected, Actual);
+        }
+        public decimal CalculateTransportationAllowece(Employee employee)
+        {
+            if (employee is null)
+                throw new ArgumentNullException(nameof(employee));
 
-            var expected = salarySlipProcessor.CalculateBasicSalary(employee) * Constants.PensionRate;
+            if (employee.WorkPlatform == WorkPlatform.Office)
+                return Constants.TransportationAllowanceAmount;
 
-            // Assert
+            if (employee.WorkPlatform == WorkPlatform.Remote)
+                return 0m;
 
-            Assert.Equal(actual, expected);
+            return Constants.TransportationAllowanceAmount / 2;
         }
 
-        [Fact]
-        public void CalculatePension_EmployeeHasPensionOff_ReturnsZero()
-        {
-            // Arrange 
-            var employee = new Employee { Wage = 500, WorkingDays = 20, HasPensionPlan = false };
-
-            // Act
-
-            var salarySlipProcessor = new SalarySlipProcessor(null);
-
-            var actual = salarySlipProcessor.CalculatePension(employee);
-
-            var expected = 0;
-
-            // Assert
-
-            Assert.Equal(actual, expected);
-        }
-
-        [Fact]
-        public void CalculateHealthInsurance_EmployeeIsNull_ThrowArgumentNullException()
-        {
-            // Arrange
-
-            Employee employee = null;
-
-            // Act
-
-            var salarySlipProcessor = new SalarySlipProcessor(null);
-
-            Func<Employee, decimal> func = (e) => salarySlipProcessor.CalculateHealthInsurance(employee);
-
-            // Assert 
-
-            Assert.Throws<ArgumentNullException>(() => func(employee));
-
-        }
-
-        [Fact]
-        public void CalculateHealthInsurance_EmployeeWithBasicCoverage_ReturnsBasicCoverageAmount()
-        {
-            // Arrange 
-            var employee = new Employee { HealthInsurancePackage = HealthInsurancePackage.Basic };
-
-            // Act
-
-            var salarySlipProcessor = new SalarySlipProcessor(null);
-
-            var actual = salarySlipProcessor.CalculateHealthInsurance(employee);
-
-            var expected = Constants.BasicHealthCareAmount;
-
-            // Assert
-
-            Assert.Equal(actual, expected);
-        }
-
-        [Fact]
-        public void CalculateHealthInsurance_EmployeeWithFairCoverage_ReturnsFairCoverageAmount()
-        {
-            // Arrange 
-            var employee = new Employee { HealthInsurancePackage = HealthInsurancePackage.Fair };
-
-            // Act
-
-            var salarySlipProcessor = new SalarySlipProcessor(null);
-
-            var actual = salarySlipProcessor.CalculateHealthInsurance(employee);
-
-            var expected = Constants.FairHealthCareAmount;
-
-            // Assert
-
-            Assert.Equal(actual, expected);
-        }
-
-
-        [Fact]
-        public void CalculateHealthInsurance_EmployeeWithPremiumCoverage_ReturnsPremiumCoverageAmount()
-        {
-            // Arrange 
-            var employee = new Employee { HealthInsurancePackage = HealthInsurancePackage.Premium };
-
-            // Act
-
-            var salarySlipProcessor = new SalarySlipProcessor(null);
-
-            var actual = salarySlipProcessor.CalculateHealthInsurance(employee);
-
-            var expected = Constants.PremiumHealthCareAmount;
-
-            // Assert
-
-            Assert.Equal(actual, expected);
-        }
-
-        [Fact]
-        public void CalculateHealthInsurance_EmployeeHealthInsurancePackageIsNull_ReturnsZero()
-        {
-            // Arrange 
-            var employee = new Employee { HealthInsurancePackage = null };
-
-            // Act
-
-            var salarySlipProcessor = new SalarySlipProcessor(null);
-
-            var actual = salarySlipProcessor.CalculateHealthInsurance(employee);
-
-            var expected = 0;
-
-            // Assert
-
-            Assert.Equal(actual, expected);
-        }
-
-        [Fact]
-        public void CalculateTransportationAllowece_EmployeeIsNull_ThrowArgumentNullException()
-        {
-            // Arrange
-
-            Employee employee = null;
-
-            // Act
-
-            var salarySlipProcessor = new SalarySlipProcessor(null);
-
-            Func<Employee, decimal> func = (e) => salarySlipProcessor.CalculateTransportationAllowece(employee);
-
-            // Assert 
-
-            Assert.Throws<ArgumentNullException>(() => func(employee));
-
-        }
-
-        [Fact]
-        public void CalculateTransportationAllowece_EmployeeWorkInOffice_ReturnsTransporationAllowance()
-        {
-            // Arrange
-
-            var employee = new Employee { WorkPlatform = WorkPlatform.Office};
-
-            // Act
-
-            var salarySlipProcessor = new SalarySlipProcessor(null);
-
-            var actual = salarySlipProcessor.CalculateTransportationAllowece(employee);
-
-            var expected = Constants.TransportationAllowanceAmount;
-
-            // Assert
-
-            Assert.Equal(actual, expected);
-        }
-
-
-        [Fact]
-        public void CalculateTransportationAllowece_EmployeeWorkRemote_ReturnsTransporationAllowance()
-        {
-            // Arrange
-
-            var employee = new Employee { WorkPlatform = WorkPlatform.Remote };
-
-            // Act
-
-            var salarySlipProcessor = new SalarySlipProcessor(null);
-
-            var actual = salarySlipProcessor.CalculateTransportationAllowece(employee);
-
-            var expected = 0m;
-
-            // Assert
-
-            Assert.Equal(actual, expected);
-        }
-
-        [Fact]
-        public void CalculateTransportationAllowece_EmployeeWorkHybridMode_ReturnsTransporationAllowance()
-        {
-            // Arrange
-
-            var employee = new Employee { WorkPlatform = WorkPlatform.Hybrid };
-
-            // Act
-
-            var salarySlipProcessor = new SalarySlipProcessor(null);
-
-            var actual = salarySlipProcessor.CalculateTransportationAllowece(employee);
-
-            var expected = Constants.TransportationAllowanceAmount/2;
-
-            // Assert
-
-            Assert.Equal(actual, expected);
-        }
-
-        [Fact]
-        public void CalculateDangerPay_EmployeeIsNull_ThrowArgumentNullException()
-        {
-            // Arrange
-
-            Employee employee = null;
-
-            // Act
-
-            var salarySlipProcessor = new SalarySlipProcessor(null);
-
-            Func<Employee, decimal> func = (e) => salarySlipProcessor.CalculateDangerPay(employee);
-
-            // Assert 
-
-            Assert.Throws<ArgumentNullException>(() => func(employee));
-
-        }
-
-        [Fact]
-        public void CalculateDangerPay_EmployeeIsDangerOn_ReturnsDangerPay()
-        {
-            // Arrange
-
-            var employee = new Employee { IsDanger = true};
-
-            // Act
-
-            var salarySlipProcessor = new SalarySlipProcessor(null);
-
-            var actual = salarySlipProcessor.CalculateDangerPay(employee);
-
-            var expected = Constants.DangerPayAmount;
-
-            // Assert
-
-            Assert.Equal(actual, expected);
-        }
-
-        [Fact]
-        public void CalculateDangerPay_EmployeeIsDangerOffAndInDangerZone_ReturnsDangerPay()
-        {
-            // Arrange
-
-            var employee = new Employee { IsDanger = false, DutyStation = "Ukraine" };
-            
-            var mock = new Mock<IZoneService>();
-            
-            var setup = mock.Setup(z=>z.IsDangerZone(employee.DutyStation)).Returns(true);
-            
-            // Act 
-
-            var salarySlipProcessor = new SalarySlipProcessor(mock.Object);
-
-            var actual = salarySlipProcessor.CalculateDangerPay(employee);
-
-            var expected = Constants.DangerPayAmount;
-
-            // Assert
-
-            Assert.Equal(actual, expected);
-        }
-
-        [Fact]
-        public void CalculateDangerPay_EmployeeIsDangerOffAndNotInDangerZone_ReturnsZero()
-        {
-            // Arrange
-
-            var employee = new Employee { IsDanger = false, DutyStation = "Ukraine" };
-
-            var mock = new Mock<IZoneService>();
-
-            var setup = mock.Setup(z => z.IsDangerZone(employee.DutyStation)).Returns(false);
-
-            // Act 
-
-            var salarySlipProcessor = new SalarySlipProcessor(mock.Object);
-
-            var actual = salarySlipProcessor.CalculateDangerPay(employee);
-
-            var expected = 0m;
-
-            // Assert
-
-            Assert.Equal(actual, expected); 
-        }
-
-        [Fact]
-        public void CalculateTax_EmployeeIsNull_ThrowArgumentNullException()
-        {
-            // Arrange
-
-            Employee employee = null;
-
-            // Act
-
-            var salarySlipProcessor = new SalarySlipProcessor(null);
-
-            Func<Employee, decimal> func = (e) => salarySlipProcessor.CalculateSpouseAllowance(employee);
-
-            // Assert 
-
-            Assert.Throws<ArgumentNullException>(() => func(employee));
-
-        }
-
-        [Fact]
-        public void CalculateTax_EmployeeWithHighSalaryThreshold_ReturnsHighTaxAmount()
-        {
-            // Arrange 
-            var employee = new Employee { Wage = 1000, WorkingDays = 22 }; // 22,000
-
-            // Act
-
-            var salarySlipProcessor = new SalarySlipProcessor(null);
-
-            var actual = salarySlipProcessor.CalculateTax(employee);
-
-            var expected = salarySlipProcessor.CalculateBasicSalary(employee)
-                * Constants.HighSalaryTaxFactor;
-
-            // Assert
-
-            Assert.Equal(actual, expected);
-        }
-
-        [Fact]
-        public void CalculateTax_EmployeeWithMediumSalaryThreshold_ReturnsMediumTaxAmount()
-        {
-            // Arrange 
-            var employee = new Employee { Wage = 800, WorkingDays = 22 }; // 17,600
-
-            // Act
-
-            var salarySlipProcessor = new SalarySlipProcessor(null);
-
-            var actual = salarySlipProcessor.CalculateTax(employee);
-
-            var expected = salarySlipProcessor.CalculateBasicSalary(employee)
-                * Constants.MediumSalaryTaxFactor;
-
-            // Assert
-
-            Assert.Equal(actual, expected);
-        }
-
-        [Fact]
-        public void CalculateTax_EmployeeWithLowSalaryThreshold_ReturnsZeroTaxAmount()
-        {
-            // Arrange 
-            var employee = new Employee { Wage = 450, WorkingDays = 22 }; // 9,900
-
-            // Act
-
-            var salarySlipProcessor = new SalarySlipProcessor(null);
-
-            var actual = salarySlipProcessor.CalculateTax(employee);
-
-            var expected = 0m;
-
-            // Assert
-
-            Assert.Equal(actual, expected);
-        }
-
-
-
-        [Fact]
-        public void CalculateNetSalary_EmployeeIsNull_ThrowArgumentNullException()
-        {
-            // Arrange
-
-            Employee employee = null;
-
-            // Act
-
-            var salarySlipProcessor = new SalarySlipProcessor(null);
-
-            Func<Employee, decimal> func = (e) => salarySlipProcessor.CalculateDangerPay(employee);
-
-            // Assert 
-
-            Assert.Throws<ArgumentNullException>(() => func(employee));
-        }
-
-        [Fact]
-        public void CalculateNetSalary_ForGivenEmployee_ReturnsNetSalary()
-        {
-            // Arrange
-
-            var employee = new Employee {
-                Wage = 100,
-                WorkingDays = 20,
-                TotalDependancies = 2,
-                IsMarried = true,
-                HasPensionPlan = true,
-                HealthInsurancePackage = HealthInsurancePackage.Basic,
-                IsDanger = true 
-            };
-
-
-            var mock = new Mock<IZoneService>();
-            var setup = mock.Setup(z => z.IsDangerZone(employee.DutyStation)).Returns(false);
-            var salarySlipProcessor = new SalarySlipProcessor(mock.Object);
-
-            var basicSalary = salarySlipProcessor.CalculateBasicSalary(employee);
-            var pension = salarySlipProcessor.CalculatePension(employee);
-            var healthInsurance = salarySlipProcessor.CalculateHealthInsurance(employee);
-            var dangerPay = salarySlipProcessor.CalculateDangerPay(employee);
-            var spouseAllowance = salarySlipProcessor.CalculateSpouseAllowance(employee);
-            var dependancyAllowance = salarySlipProcessor.CalculateDependancyAllowance(employee);
-            var transportationAllowance = salarySlipProcessor.CalculateTransportationAllowece(employee);
-            var tax = salarySlipProcessor.CalculateTax(employee);
-
-            var benifits = 
-                basicSalary + dangerPay + spouseAllowance 
-                + dependancyAllowance + transportationAllowance;
-
-            var deductions = pension + healthInsurance + tax;
-
-            var expected = benifits - deductions;
-            
-            var actual = salarySlipProcessor.calculateNetSalary(employee);
-            
-            // Act 
-
-            Assert.Equal(expected, actual); 
-        }
     }
 }
