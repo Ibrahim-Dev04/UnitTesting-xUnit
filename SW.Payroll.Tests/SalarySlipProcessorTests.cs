@@ -118,18 +118,84 @@ namespace SW.Payroll.Tests
             //assert
             Assert.Equal(Expected, Actual);
         }
-        public decimal CalculateTransportationAllowece(Employee employee)
+
+        [Fact]
+        public void CalculateDangerPay_ForEmployeeIsNull_ThrowArgumentNullException()
         {
-            if (employee is null)
-                throw new ArgumentNullException(nameof(employee));
+            //Arrange
+            Employee employee = null;
 
-            if (employee.WorkPlatform == WorkPlatform.Office)
-                return Constants.TransportationAllowanceAmount;
+            //act
+            SalarySlipProcessor salarySlipProcessor = new SalarySlipProcessor(null);
 
-            if (employee.WorkPlatform == WorkPlatform.Remote)
-                return 0m;
+            Func<Employee, decimal> Func = (emp) => salarySlipProcessor.CalculateDangerPay(emp);
 
-            return Constants.TransportationAllowanceAmount / 2;
+            //Assert
+
+            Assert.Throws<ArgumentNullException>(() => Func(employee));
+
+        }
+        [Fact]
+        public void CalculateDangerPay_EmployeeIsDangerOn_ReturnDangerPayAmount()
+        {
+            //arrange
+            Employee employee = new Employee() { IsDanger = true };
+
+            //act
+            SalarySlipProcessor salarySlipProcessor = new SalarySlipProcessor(null);
+
+            var Actual   = salarySlipProcessor.CalculateDangerPay(employee);
+            var Expected = Constants.DangerPayAmount;
+
+            //Assert
+
+            Assert.Equal(Expected, Actual);
+        }
+
+        [Fact]
+        public void CalculateDangerPay_EmployeeIsDangerOffAndInDangerZone_ReturnDangerPayAmount()
+        {
+            //arrange
+            Employee employee = new Employee() { IsDanger = false,DutyStation = "Gaza" };
+            var mock = new Mock<IZoneService>();
+            var setup = mock.Setup(z => z.IsDangerZone(employee.DutyStation)).Returns(true);
+          
+            //act
+            SalarySlipProcessor salarySlipProcessor = new SalarySlipProcessor(mock.Object);
+
+            var Actual = salarySlipProcessor.CalculateDangerPay(employee);
+            var Expected = Constants.DangerPayAmount;
+
+            //Assert
+
+            Assert.Equal(Expected, Actual);
+        }
+        [Fact]
+        public void CalculateDangerPay_EmployeeInDangerOffAndNotInDangerZone_ReturnDangerPayAmount()
+        {
+            //arrange
+            Employee employee = new Employee() { IsDanger = false, DutyStation = "Gaza" };
+            var mock = new Mock<IZoneService>();
+            var setup = mock.Setup(z => z.IsDangerZone(employee.DutyStation)).Returns(false);
+
+            //act
+            SalarySlipProcessor salarySlipProcessor = new SalarySlipProcessor(mock.Object);
+
+            var Actual = salarySlipProcessor.CalculateDangerPay(employee);
+            var Expected = 0m;
+
+            //Assert
+
+            Assert.Equal(Expected, Actual);
+        }
+        public decimal CalculateDangerPay(Employee employee)
+        {
+            //var isDangerZone = zoneService.IsDangerZone(employee.DutyStation);
+
+            //if (isDangerZone)
+            //    return Constants.DangerPayAmount;
+
+            return 0m;
         }
 
     }

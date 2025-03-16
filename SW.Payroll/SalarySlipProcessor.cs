@@ -69,7 +69,6 @@ namespace SW.Payroll
         }
         public decimal CalculateDangerPay(Employee employee)
         {
-
             if (employee is null)
                 throw new ArgumentNullException(nameof(employee));
 
