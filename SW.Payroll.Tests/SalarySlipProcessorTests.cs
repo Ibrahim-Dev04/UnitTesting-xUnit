@@ -188,15 +188,199 @@ namespace SW.Payroll.Tests
 
             Assert.Equal(Expected, Actual);
         }
-        public decimal CalculateDangerPay(Employee employee)
+
+        [Fact]
+        public void CalculateSpouseAllowance_ForEmployeeIsNull_ThrowsArgumentNullException()
         {
-            //var isDangerZone = zoneService.IsDangerZone(employee.DutyStation);
+            //Arrange
+            Employee employee = null;
 
-            //if (isDangerZone)
-            //    return Constants.DangerPayAmount;
+            //Act
+            SalarySlipProcessor salarySlipProcessor = new SalarySlipProcessor(null);
+            Func<Employee, decimal> func = (Empl) => salarySlipProcessor.CalculateSpouseAllowance(Empl);
 
-            return 0m;
+            //Assert
+
+            Assert.Throws<ArgumentNullException>(() => func(employee));
+        }
+        [Fact]
+        public void CalculateSpouseAllowance_EmployeeIsMariedTrue_returnSpouseAllowanceAmount()
+        {
+            //Arrange
+            Employee employee = new Employee() { IsMarried = true };
+
+            //Act
+            SalarySlipProcessor salarySlipProcessor = new SalarySlipProcessor(null);
+            var Actual = salarySlipProcessor.CalculateSpouseAllowance(employee);
+            var Expected = Constants.SpouseAllowanceAmount;
+
+            //assert
+
+            Assert.Equal(Expected, Actual);
+        }
+        [Fact]
+        public void CalculateSpouseAllowance_EmployeeIsMariedFalse_returnZeroAmout()
+        {
+            //Arrange
+            Employee employee = new Employee() { IsMarried = false };
+
+            //Act
+            SalarySlipProcessor salarySlipProcessor = new SalarySlipProcessor(null);
+            var Actual = salarySlipProcessor.CalculateSpouseAllowance(employee);
+            var Expected = 0m;
+
+            //assert
+
+            Assert.Equal(Expected, Actual);
         }
 
+        [Fact]
+        public void CalculateDependancyAllowance_ForEmployeeIsNull_ThrowsArgumentNullException()
+        {
+            //Arrange
+            Employee employee = null;
+
+            //Act
+            SalarySlipProcessor salarySlipProcessor = new SalarySlipProcessor(null);
+            Func<Employee, decimal> func = (Empl) => salarySlipProcessor.CalculateDependancyAllowance(Empl);
+
+            //Assert
+
+            Assert.Throws<ArgumentNullException>(() => func(employee));
+        }
+
+        [Fact]
+        public void CalculateDependancyAllowance_ForEmployeeTotalDependenciesLessThat0_ThrowsArgumentNullException()
+        {
+            //Arrange
+            Employee employee = new Employee() { TotalDependancies = -1};
+
+            //Act
+            SalarySlipProcessor salarySlipProcessor = new SalarySlipProcessor(null);
+            Func<Employee, decimal> func = (Empl) => salarySlipProcessor.CalculateDependancyAllowance(Empl);
+
+            //Assert
+
+            Assert.Throws<ArgumentOutOfRangeException>(() => func(employee));
+        }
+
+        [Fact]
+        public void CalculateDependancyAllowance_ForEmployeeTotalDependenciesMoreThanMax_ReturnMaxDependancyAllowanceAmount()
+        {
+            //MaxDependantsFactor = 5;
+
+            //Arrange
+            Employee employee = new Employee() { TotalDependancies =  6};
+
+            //Act
+            SalarySlipProcessor salarySlipProcessor = new SalarySlipProcessor(null);
+            var Actual = salarySlipProcessor.CalculateDependancyAllowance(employee);
+            var Expected = Constants.MaxDependancyAllowanceAmount; //200m
+
+            //Assert
+
+            Assert.Equal(Expected,Actual);
+        }
+
+        [Fact]
+        public void CalculateDependancyAllowance_ForEmployeeTotalDependenciesIs0_RetunZeroAmount()
+        {
+            //Arrange
+            Employee employee = new Employee() { TotalDependancies = 0 };
+
+            //Act
+            SalarySlipProcessor salarySlipProcessor = new SalarySlipProcessor(null);
+            var Actual = salarySlipProcessor.CalculateDependancyAllowance(employee);
+            var Expected = 0m;
+
+            //Assert
+
+            Assert.Equal(Expected, Actual);
+        }
+
+        [Fact]
+        public void CalculateDependancyAllowance_WhenWithinRange_RetunsCorrectAmount()
+        {
+            //Arrange
+            Employee employee = new Employee() { TotalDependancies = 4 };
+
+            //Act
+            SalarySlipProcessor salarySlipProcessor = new SalarySlipProcessor(null);
+            var Actual = salarySlipProcessor.CalculateDependancyAllowance(employee);
+            var Expected = 4 * Constants.DependancyAllowancePerChildAmount;
+
+            //Assert
+
+            Assert.Equal(Expected, Actual);
+        }
+
+        [Fact]
+        public void CalculatePention_EmployeeIsNull_ThrowsArgumentNullException()
+        {
+            //Arrange
+            Employee employee = null;
+
+            //Act
+            SalarySlipProcessor salarySlipProcessor = new SalarySlipProcessor(null);
+            Func<Employee, decimal> func = (Empl) => salarySlipProcessor.CalculatePension(Empl);
+
+            //Assert
+
+            Assert.Throws<ArgumentNullException>(() => func(employee));
+        }
+
+        [Fact]
+        public void CalculatePension_EmployeeWithoutPensionPlan_ReturnZero()
+        {
+            //Arrange
+            Employee employee = new Employee() { HasPensionPlan = false };
+
+            //Act
+            SalarySlipProcessor salarySlipProcessor = new SalarySlipProcessor(null);
+            var Actual = salarySlipProcessor.CalculatePension(employee);
+            var Expected = 0m;
+
+            //Assert
+
+            Assert.Equal(Expected, Actual);
+        }
+        [Fact]
+        public void CalculatePension_EmployeeWitPensionPlan_ReturnsCorrectAmount()
+        {
+            //Arrange
+            Employee employee = new Employee() {Wage = 100, HasPensionPlan = true,WorkingDays = 10};
+
+            //Act
+            SalarySlipProcessor salarySlipProcessor = new SalarySlipProcessor(null);
+            var Actual = salarySlipProcessor.CalculatePension(employee);
+            var Expected = Constants.PensionRate * (100 * 10);
+
+            //Assert
+
+            Assert.Equal(Expected, Actual);
+        }
+        public decimal CalculatePension(Employee employee)
+        {
+            if (employee is null)
+                throw new ArgumentNullException(nameof(employee));
+
+            if (!employee.HasPensionPlan)
+                return 0m;
+
+            // return Constants.PensionRate * CalculateBasicSalary(employee);
+            return 0m;
+
+        }
+        public decimal CalculateTax(Employee employee)
+        {
+            // var basicSalary = CalculateBasicSalary(employee);
+            //   if (basicSalary >= Constants.MediumSalaryThreshold)
+            //   return basicSalary * Constants.HighSalaryTaxFactor;
+            //else if (basicSalary >= Constants.LowSalaryThreshold)
+            //     return basicSalary * Constants.MediumSalaryTaxFactor;
+            // else
+            // return basicSalary * Constants.LowSalaryTaxFactor;
+            return 0m;
+        }
     }
 }
