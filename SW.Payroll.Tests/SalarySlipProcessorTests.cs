@@ -359,18 +359,7 @@ namespace SW.Payroll.Tests
 
             Assert.Equal(Expected, Actual);
         }
-        public decimal CalculatePension(Employee employee)
-        {
-            if (employee is null)
-                throw new ArgumentNullException(nameof(employee));
-
-            if (!employee.HasPensionPlan)
-                return 0m;
-
-            // return Constants.PensionRate * CalculateBasicSalary(employee);
-            return 0m;
-
-        }
+      
         public decimal CalculateTax(Employee employee)
         {
             // var basicSalary = CalculateBasicSalary(employee);
